@@ -8,7 +8,7 @@ A web application implementing the functionality of a calculator. The applicatio
 - The application should implement subtraction operation.
 - The application should implement multiplication operation.
 - The application should implement division operation (division by 0 is an error).
-- The application should perform expression calculation (without mathematical brackets) for up to 9 operations.
+- The application should perform expression calculation (without mathematical brackets).
 - The application should prioritize operations according to mathematical rules.
 - The application should record the calculation result and the expression itself in the database.
 - Intermediate calculations MUST be recorded in the database as well as the final result.
@@ -17,6 +17,7 @@ A web application implementing the functionality of a calculator. The applicatio
 - The application should provide accuracy up to the 3rd decimal place (at each operation).
 - The application should round all input fractional numbers to the 3rd decimal place.
 - The application should validate input data: only mathematical operations that the application can handle and numbers are allowed (the symbol "." (dot) serves as a separator).
+- The application should handle expressions that user input less then 50 characters;
 - Authentication and authorization must be implemented.
 
 ## Architecture Requirements
@@ -30,6 +31,7 @@ A web application implementing the functionality of a calculator. The applicatio
   - Query: for obtaining the result of intermediate operations.
 - Database: MongoDB.
 - Implement the SAGA pattern in the application.
+- Each service should have its own database.
 
 ## Communication Channel Requirements
 - Message broker: RabbitMQ.
