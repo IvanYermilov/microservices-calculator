@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtractionService", "Subtr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiplicationService", "MultiplicationService\MultiplicationService.csproj", "{39F94186-C5CC-4A4E-9141-0AC466D89F6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "Constracts\Contracts.csproj", "{141F8A6B-7425-490F-B3CF-ABB957D0AB03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{39F94186-C5CC-4A4E-9141-0AC466D89F6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39F94186-C5CC-4A4E-9141-0AC466D89F6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39F94186-C5CC-4A4E-9141-0AC466D89F6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{141F8A6B-7425-490F-B3CF-ABB957D0AB03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{141F8A6B-7425-490F-B3CF-ABB957D0AB03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{141F8A6B-7425-490F-B3CF-ABB957D0AB03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{141F8A6B-7425-490F-B3CF-ABB957D0AB03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,18 +1,16 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿
+using Contracts;
+using MassTransit;
 
 namespace CalculatorAPI.BLL;
 
-public class ExpressionManager : IExpressionManager
+public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionManager
 {
-
-    public double Calculate(string expression)
+    public async Task<double> Calculate(string expression, CancellationToken cancellationToken)
     {
-        
         Stack<string> expressionAsStackInfix = Parse(expression);
         var expressionAsStackPostfix = ToPostfixForm(expressionAsStackInfix);
-        return CalculateResult(expressionAsStackPostfix); 
+        return await CalculateResult(expressionAsStackPostfix, cancellationToken); 
     }
 
 
@@ -134,7 +132,7 @@ public class ExpressionManager : IExpressionManager
         }
     }
 
-    private double CalculateResult(Stack<string> expressionAsStackPostfix)
+    private async Task<double> CalculateResult(Stack<string> expressionAsStackPostfix, CancellationToken cancellationToken)
     {
         Stack<double> calculationStack = new Stack<double>();
         foreach (var stackValue in expressionAsStackPostfix)
@@ -152,6 +150,11 @@ public class ExpressionManager : IExpressionManager
                 {
                     case Constants.Plus:
                         calculationStack.Push(operand2 + operand1);
+                        await publishEndpoint.Publish(new PlusEvent()
+                        {
+                            Operand1 = operand1,
+                            Operand2 = operand2
+                        }, cancellationToken);
                         break;
                     case Constants.Minus:
                         calculationStack.Push(operand2 - operand1);

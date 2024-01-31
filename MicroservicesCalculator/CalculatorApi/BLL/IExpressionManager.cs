@@ -2,5 +2,5 @@
 
 public interface IExpressionManager
 {
-    double Calculate(string expression);
+    Task<double> Calculate(string expression, CancellationToken cancellationToken);
 }
