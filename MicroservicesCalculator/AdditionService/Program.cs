@@ -1,5 +1,10 @@
-using AdditionService.Features.Addition;
+using AdditionService.BLL.AdditionService;
+using AdditionService.BLL.Features.Addition;
+using AdditionService.Configurations;
+using AdditionService.DAL.Repository;
 using MassTransit;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +27,19 @@ builder.Services.AddMassTransit(busConfigurator =>
         configurator.ConfigureEndpoints(context);
     });
 });
+
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("Database"));
+
+builder.Services.AddSingleton(sp => 
+    sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+
+builder.Services.AddSingleton<IMongoClient>(sp => 
+    new MongoClient(builder.Configuration.GetSection("Database:ConnectionString").Value!));
+
+builder.Services.AddScoped<IAdditionOperationRepository, AdditionOperationRepository>();
+
+builder.Services.AddScoped<IAdditionService, AdditionOperationService>();
 
 var app = builder.Build();
 
