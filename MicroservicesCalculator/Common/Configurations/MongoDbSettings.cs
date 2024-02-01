@@ -1,4 +1,4 @@
-﻿namespace AdditionService.Configurations;
+﻿namespace Common.Configurations;
 
 public class MongoDbSettings
 {

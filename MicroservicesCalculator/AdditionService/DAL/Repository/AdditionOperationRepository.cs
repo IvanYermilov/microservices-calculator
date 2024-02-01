@@ -1,5 +1,5 @@
-﻿using AdditionService.Configurations;
-using AdditionService.DAL.Models;
+﻿using AdditionService.DAL.Models;
+using Common.Configurations;
 using MongoDB.Driver;
 
 namespace AdditionService.DAL.Repository;

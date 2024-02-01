@@ -3,9 +3,9 @@ using AdditionService.DAL.Repository;
 
 namespace AdditionService.BLL.AdditionService;
 
-class AdditionOperationService(IAdditionOperationRepository additionOperationRepository) : IAdditionService
+class AdditionOperationOperationService(IAdditionOperationRepository additionOperationRepository) : IAdditionOperationService
 {
-    public async Task Plus(double operand1, double operand2)
+    public async Task Plus(decimal operand1, decimal operand2)
     {
         var additionResult = operand1 + operand2;
         var additionOperationData = new AdditionOperationData()

@@ -1,14 +1,12 @@
 using AdditionService.BLL.AdditionService;
 using AdditionService.BLL.Features.Addition;
-using AdditionService.Configurations;
 using AdditionService.DAL.Repository;
+using Common.Configurations;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddMassTransit(busConfigurator =>
 {
@@ -39,12 +37,8 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 
 builder.Services.AddScoped<IAdditionOperationRepository, AdditionOperationRepository>();
 
-builder.Services.AddScoped<IAdditionService, AdditionOperationService>();
+builder.Services.AddScoped<IAdditionOperationService, AdditionOperationOperationService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-
 app.Run();
-

@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace AdditionService.DAL.Models;
+namespace MultiplicationService.DAL.Models;
 
-public class AdditionOperationData
+public class MultiplicationOperationData
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]

@@ -1,34 +1,44 @@
+using Common.Configurations;
+using MassTransit;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+using MultiplicationService.BLL.Features.Multiplication;
+using MultiplicationService.BLL.MultiplicationService;
+using MultiplicationService.DAL.Repository;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddMassTransit(busConfigurator =>
+{
+    busConfigurator.SetKebabCaseEndpointNameFormatter();
+
+    busConfigurator.AddConsumer<MultiplicationEventConsumer>();
+
+    busConfigurator.UsingRabbitMq((context, configurator) =>
+    {
+        configurator.Host(new Uri(builder.Configuration.GetSection("MessageBroker:Host").Value!), h =>
+        {
+            h.Username(builder.Configuration.GetSection("MessageBroker:Username").Value!);
+            h.Password(builder.Configuration.GetSection("MessageBroker:Password").Value!);
+        });
+
+        configurator.ConfigureEndpoints(context);
+    });
+});
+
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("Database"));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+
+builder.Services.AddSingleton<IMongoClient>(sp =>
+    new MongoClient(builder.Configuration.GetSection("Database:ConnectionString").Value!));
+
+builder.Services.AddScoped<IMultiplicationOperationRepository, MultiplicationOperationRepository>();
+
+builder.Services.AddScoped<IMultiplicationOperationService, IMultiplicationOperationService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-});
-
 app.Run();
-
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
