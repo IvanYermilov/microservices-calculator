@@ -4,5 +4,7 @@ namespace AdditionService.DAL.Repository;
 
 public interface IAdditionOperationRepository
 {
-    public Task RecordAdditionResult(AdditionOperationData additionOperation);
+    public Task<Guid> RecordAdditionResult(AdditionOperationData additionOperation);
+
+    public Task RemoveAdditionResult(Guid documentId);
 }

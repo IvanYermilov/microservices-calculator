@@ -1,10 +1,20 @@
-using AdditionService.BLL.AdditionService;
-using AdditionService.BLL.Features.Addition;
+using System.Reflection;
+using AdditionService.BLL.Activities.AdditionActivity;
 using AdditionService.DAL.Repository;
+using AdditionService.Presentation.Consumers.Addition;
 using Common.Configurations;
 using MassTransit;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+
+#pragma warning disable CS0618
+BsonDefaults.GuidRepresentation = GuidRepresentation.Standard;
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+#pragma warning restore CS0618
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +34,12 @@ builder.Services.AddMassTransit(busConfigurator =>
 
         configurator.ConfigureEndpoints(context);
     });
+    busConfigurator.AddActivitiesFromNamespaceContaining<AdditionActivity>();
+});
+
+builder.Services.AddMediatR((configuration) =>
+{
+    configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
 });
 
 builder.Services.Configure<MongoDbSettings>(
@@ -36,8 +52,6 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
     new MongoClient(builder.Configuration.GetSection("Database:ConnectionString").Value!));
 
 builder.Services.AddScoped<IAdditionOperationRepository, AdditionOperationRepository>();
-
-builder.Services.AddScoped<IAdditionOperationService, AdditionOperationOperationService>();
 
 var app = builder.Build();
 

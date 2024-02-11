@@ -1,4 +1,5 @@
 
+using AdditionService.BLL.Activities.AdditionActivity;
 using CalculatorAPI.Extensions;
 using MassTransit;
 
