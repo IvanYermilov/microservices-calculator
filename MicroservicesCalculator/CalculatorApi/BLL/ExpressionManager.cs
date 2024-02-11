@@ -1,12 +1,12 @@
-﻿
+﻿using AdditionService.BLL.Activities.AdditionActivity;
 using Contracts;
 using MassTransit;
 
 namespace CalculatorAPI.BLL;
 
-public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionManager
+public class ExpressionManager(IBus bus, IEndpointNameFormatter formatter) : IExpressionManager
 {
-    public async Task<double> Calculate(string expression, CancellationToken cancellationToken)
+    public async Task<decimal> Calculate(string expression, CancellationToken cancellationToken)
     {
         Stack<string> expressionAsStackInfix = Parse(expression);
         var expressionAsStackPostfix = ToPostfixForm(expressionAsStackInfix);
@@ -75,7 +75,7 @@ public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionMa
 
         foreach (var stackValue in expression)
         {
-            if (double.TryParse(stackValue, out _))
+            if (decimal.TryParse(stackValue, out _))
             {
                 finalStack.Push(stackValue);
             }
@@ -132,12 +132,14 @@ public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionMa
         }
     }
 
-    private async Task<double> CalculateResult(Stack<string> expressionAsStackPostfix, CancellationToken cancellationToken)
+    private async Task<decimal> CalculateResult(Stack<string> expressionAsStackPostfix, CancellationToken cancellationToken)
     {
-        Stack<double> calculationStack = new Stack<double>();
+        bool isFirstOperation = true;
+        Stack<decimal> calculationStack = new Stack<decimal>();
+        var builder = new RoutingSlipBuilder(NewId.NextGuid());
         foreach (var stackValue in expressionAsStackPostfix)
         {
-            if (double.TryParse(stackValue, out var operand))
+            if (decimal.TryParse(stackValue, out var operand))
             {
                 calculationStack.Push(operand);
             }
@@ -145,16 +147,27 @@ public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionMa
             {
                 var operand1 = calculationStack.Pop();
                 var operand2 = calculationStack.Pop();
+                if (isFirstOperation)
+                {
+                    builder.AddVariable("Operand1", operand1);
+
+                    isFirstOperation = false;
+                }
 
                 switch (stackValue)
                 {
                     case Constants.Plus:
                         calculationStack.Push(operand2 + operand1);
-                        await publishEndpoint.Publish(new PlusEvent()
-                        {
-                            Operand1 = operand1,
-                            Operand2 = operand2
-                        }, cancellationToken);
+                        //await bus.Publish(new PlusEvent()
+                        //{
+                        //    Operand1 = operand1,
+                        //    Operand2 = operand2
+                        //}, cancellationToken);
+                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationArguments>()}"),
+                            new
+                            {
+                                Operand2 = operand2
+                            });
                         break;
                     case Constants.Minus:
                         calculationStack.Push(operand2 - operand1);
@@ -168,6 +181,11 @@ public class ExpressionManager(IPublishEndpoint publishEndpoint) : IExpressionMa
                 }
             }
         }
+
+        var routingSlip = builder.Build();
+
+        await bus.Execute(routingSlip, cancellationToken);
+        
         return calculationStack.Pop();
     }
 
