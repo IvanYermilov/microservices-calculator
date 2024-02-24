@@ -2,5 +2,5 @@
 
 public interface IExpressionManager
 {
-    Task<decimal> Calculate(string expression, CancellationToken cancellationToken);
+    Task<Stack<string>> Convert(string expression, CancellationToken cancellationToken);
 }

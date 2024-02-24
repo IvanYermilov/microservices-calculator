@@ -1,14 +1,13 @@
 using System.Reflection;
 using AdditionService.BLL.Activities.AdditionActivity;
 using AdditionService.DAL.Repository;
-using AdditionService.Presentation.Consumers.Addition;
 using Common.Configurations;
+using Common.Extensions;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
 
 #pragma warning disable CS0618
 BsonDefaults.GuidRepresentation = GuidRepresentation.Standard;
@@ -22,7 +21,7 @@ builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
-    busConfigurator.AddConsumer<AdditionEventConsumer>();
+    busConfigurator.AddConsumersFromNamespaceContaining<AdditionActivity>();
 
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
@@ -45,11 +44,12 @@ builder.Services.AddMediatR((configuration) =>
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("Database"));
 
-builder.Services.AddSingleton(sp => 
+builder.Services.AddSingleton(sp =>                  //Проверить, нужны ли Options, если написал то, что на 46
     sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
 
-builder.Services.AddSingleton<IMongoClient>(sp => 
-    new MongoClient(builder.Configuration.GetSection("Database:ConnectionString").Value!));
+var mongoDbSettings = builder.Configuration.GetSection("Database").Get<MongoDbSettings>();
+
+builder.Services.AddMongo(mongoDbSettings);
 
 builder.Services.AddScoped<IAdditionOperationRepository, AdditionOperationRepository>();
 

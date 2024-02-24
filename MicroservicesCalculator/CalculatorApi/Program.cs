@@ -1,7 +1,10 @@
-
-using AdditionService.BLL.Activities.AdditionActivity;
+using System.Reflection;
 using CalculatorAPI.Extensions;
+using CalculatorAPI.Messaging.Consumers;
+using CalculatorAPI.Messaging.StateMachines;
+using Common.Configurations;
 using MassTransit;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +14,17 @@ builder.Services.AddControllers();
 
 builder.Services.AddApplication();
 
-builder.Services.AddMassTransit(busConfigurator=>
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("Database"));
+
+builder.Services.AddSingleton(sp =>
+    sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+
+builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
+
+    busConfigurator.AddConsumers(Assembly.GetExecutingAssembly());
 
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
@@ -23,8 +34,17 @@ builder.Services.AddMassTransit(busConfigurator=>
             h.Password(builder.Configuration.GetSection("MessageBroker:Password").Value!);
         });
 
+        configurator.UseInMemoryOutbox(context);
+
         configurator.ConfigureEndpoints(context);
     });
+
+    busConfigurator.AddSagaStateMachine<CalculateExpressionStateMachine, CalculateExpressionState>()
+        .MongoDbRepository(r =>
+        {
+            r.Connection = builder.Configuration.GetSection("Database:ConnectionString").Value!;
+            r.DatabaseName = builder.Configuration.GetSection("Database:DatabaseName").Value!;
+        });
 });
 
 var app = builder.Build();
