@@ -2,7 +2,7 @@
 
 public record OperationArguments
 {
-    public decimal Operand1 { get; init; }
+    public decimal ResultOperand { get; init; }
 
-    public decimal Operand2 { get; init; }
+    public decimal CalculationOperand { get; init; }
 }

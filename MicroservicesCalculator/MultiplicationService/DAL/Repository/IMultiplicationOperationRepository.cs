@@ -4,5 +4,7 @@ namespace MultiplicationService.DAL.Repository;
 
 public interface IMultiplicationOperationRepository
 {
-    public Task RecordMultiplicationResult(MultiplicationOperationData multiplicationOperation);
+    public Task<Guid> RecordMultiplicationResult(MultiplicationOperationData multiplicationOperation);
+
+    public Task RemoveMultiplicationResult(Guid documentId);
 }

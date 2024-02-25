@@ -78,7 +78,7 @@ static class RegistrationStateMachineBehaviorExtensions
     {
         return binder.Then(context =>
         {
-            context.Saga.Result = context.GetVariable<decimal>("Operand1") ?? 0;
+            context.Saga.Result = context.GetVariable<decimal>("ResultOperand") ?? 0;
         });
     }
 

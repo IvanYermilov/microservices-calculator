@@ -14,8 +14,14 @@ class MultiplicationOperationRepository : IMultiplicationOperationRepository
         _multiplicationOperations = database.GetCollection<MultiplicationOperationData>(mongoDbSettings.CollectionName);
     }
 
-    public async Task RecordMultiplicationResult(MultiplicationOperationData multiplicationOperation)
+    public async Task<Guid> RecordMultiplicationResult(MultiplicationOperationData multiplicationOperation)
     {
         await _multiplicationOperations.InsertOneAsync(multiplicationOperation);
+        return multiplicationOperation.Id;
+    }
+
+    public async Task RemoveMultiplicationResult(Guid documentId)
+    {
+        await _multiplicationOperations.DeleteOneAsync(mo => mo.Id == documentId);
     }
 }

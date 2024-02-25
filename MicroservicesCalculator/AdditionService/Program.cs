@@ -21,8 +21,6 @@ builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
-    busConfigurator.AddConsumersFromNamespaceContaining<AdditionActivity>();
-
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration.GetSection("MessageBroker:Host").Value!), h =>
@@ -47,7 +45,7 @@ builder.Services.Configure<MongoDbSettings>(
 builder.Services.AddSingleton(sp =>                  //Проверить, нужны ли Options, если написал то, что на 46
     sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
 
-var mongoDbSettings = builder.Configuration.GetSection("Database").Get<MongoDbSettings>();
+ var mongoDbSettings = builder.Configuration.GetSection("Database").Get<MongoDbSettings>();
 
 builder.Services.AddMongo(mongoDbSettings);
 
