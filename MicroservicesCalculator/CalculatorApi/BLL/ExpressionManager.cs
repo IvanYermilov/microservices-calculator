@@ -1,16 +1,12 @@
-﻿using AdditionService.BLL.Activities.AdditionActivity;
-using Contracts;
-using MassTransit;
+﻿namespace CalculatorAPI.BLL;
 
-namespace CalculatorAPI.BLL;
-
-public class ExpressionManager(IBus bus, IEndpointNameFormatter formatter) : IExpressionManager
+public class ExpressionManager() : IExpressionManager
 {
-    public async Task<decimal> Calculate(string expression, CancellationToken cancellationToken)
+    public async Task<Stack<string>> Convert(string expression, CancellationToken cancellationToken)
     {
         Stack<string> expressionAsStackInfix = Parse(expression);
         var expressionAsStackPostfix = ToPostfixForm(expressionAsStackInfix);
-        return await CalculateResult(expressionAsStackPostfix, cancellationToken); 
+        return expressionAsStackPostfix;
     }
 
 
@@ -123,70 +119,12 @@ public class ExpressionManager(IBus bus, IEndpointNameFormatter formatter) : IEx
                     tempStack.Push(value);
                     return;
                 }
-
             }
 
             var tempStackTopValue = tempStack.Pop();
             finalStack.Push(tempStackTopValue);
             AllocateStackValue(value, tempStack, finalStack);
         }
-    }
-
-    private async Task<decimal> CalculateResult(Stack<string> expressionAsStackPostfix, CancellationToken cancellationToken)
-    {
-        bool isFirstOperation = true;
-        Stack<decimal> calculationStack = new Stack<decimal>();
-        var builder = new RoutingSlipBuilder(NewId.NextGuid());
-        foreach (var stackValue in expressionAsStackPostfix)
-        {
-            if (decimal.TryParse(stackValue, out var operand))
-            {
-                calculationStack.Push(operand);
-            }
-            else
-            {
-                var operand1 = calculationStack.Pop();
-                var operand2 = calculationStack.Pop();
-                if (isFirstOperation)
-                {
-                    builder.AddVariable("Operand1", operand1);
-
-                    isFirstOperation = false;
-                }
-
-                switch (stackValue)
-                {
-                    case Constants.Plus:
-                        calculationStack.Push(operand2 + operand1);
-                        //await bus.Publish(new PlusEvent()
-                        //{
-                        //    Operand1 = operand1,
-                        //    Operand2 = operand2
-                        //}, cancellationToken);
-                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationArguments>()}"),
-                            new
-                            {
-                                Operand2 = operand2
-                            });
-                        break;
-                    case Constants.Minus:
-                        calculationStack.Push(operand2 - operand1);
-                        break;
-                    case Constants.Multiply:
-                        calculationStack.Push(operand2 * operand1);
-                        break;
-                    case Constants.Divide:
-                        calculationStack.Push(operand2 / operand1);
-                        break;
-                }
-            }
-        }
-
-        var routingSlip = builder.Build();
-
-        await bus.Execute(routingSlip, cancellationToken);
-        
-        return calculationStack.Pop();
     }
 
     static Stack<T> ReverseStack<T>(Stack<T> stack)
