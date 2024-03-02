@@ -1,15 +1,18 @@
-﻿using Contracts;
+﻿using Common.Extensions;
+using Contracts;
 using MassTransit;
 using MediatR;
 using SubtractionService.BLL.SubtractionOperation.Commands;
 
 namespace SubtractionService.BLL.Activities;
 
-public class SubtractionActivity(ISender sender) : IActivity<OperationArguments, OperationCalculationLog>
+public class SubtractionActivity(ISender sender) : IActivity<OperationOperands, OperationCalculationLog>
 {
-    public async Task<ExecutionResult> Execute(ExecuteContext<OperationArguments> context)
+    public async Task<ExecutionResult> Execute(ExecuteContext<OperationOperands> context)
     {
-        var command = new CalculateSubtractionOperationCommand(context.Arguments.ResultOperand, context.Arguments.CalculationOperand);
+        var resultsStack = new Stack<decimal>(((List<object>)context.Message.Variables["ResultsStack"]).Select(Convert.ToDecimal).ToList());
+        var operands = context.GetOperands(resultsStack);
+        var command = new CalculateSubtractionOperationCommand(operands.Operand1!.Value, operands.Operand2!.Value);
         var result = await sender.Send(command);
         if (result.IsSuccess)
         {
@@ -17,8 +20,9 @@ public class SubtractionActivity(ISender sender) : IActivity<OperationArguments,
             {
                 OperationId = result.Value.CalculationResultId
             };
-            context.Message.Variables["ResultOperand"] = result.Value.Result;
-            return context.CompletedWithVariables(log, result.Value.Result);
+            resultsStack.Push(result.Value.Result);
+
+            return context.CompletedWithVariables(log, new { ResultsStack = resultsStack });
         }
 
         throw new Exception(result.Errors.ToString());

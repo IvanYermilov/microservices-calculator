@@ -29,9 +29,9 @@ public sealed class CalculateExpressionConsumer(IEndpointNameFormatter formatter
 
     private async Task CreateRoutingSlip(Stack<string> expressionAsStackPostfix, ConsumeContext<CalculateExpression> context, CancellationToken cancellationToken)
     {
-        bool isFirstOperation = true;
-        Stack<decimal> calculationStack = new Stack<decimal>();
+        Stack<decimal?> calculationStack = new Stack<decimal?>();
         var builder = new RoutingSlipBuilder(NewId.NextGuid());
+        builder.AddVariable("ResultsStack", new Stack<decimal>());
         foreach (var stackValue in expressionAsStackPostfix)
         {
             if (decimal.TryParse(stackValue, out var operand))
@@ -40,45 +40,46 @@ public sealed class CalculateExpressionConsumer(IEndpointNameFormatter formatter
             }
             else
             {
-                var calculationOperand = calculationStack.Pop();
-                
-                if (isFirstOperation)
-                {
-                    var resultOperand = calculationStack.Pop();
-                    builder.AddVariable("ResultOperand", resultOperand);
-
-                    isFirstOperation = false;
-                }
+                calculationStack.TryPop(out var operand2);
+                calculationStack.TryPop(out var operand1); 
 
                 switch (stackValue)
                 {
                     case Constants.Plus:
-                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationArguments>()}"),
+                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationOperands>()}"),
                             new
                             {
-                                CalculationOperand = calculationOperand
+                                Operand1 = operand1,
+                                Operand2 = operand2,
                             });
+                        calculationStack.Push(null);
                         break;
                     case Constants.Minus:
-                        builder.AddActivity("MinusActivity", new Uri($"exchange:{formatter.ExecuteActivity<SubtractionActivity, OperationArguments>()}"),
+                        builder.AddActivity("MinusActivity", new Uri($"exchange:{formatter.ExecuteActivity<SubtractionActivity, OperationOperands>()}"),
                             new
                             {
-                                CalculationOperand = calculationOperand
+                                Operand1 = operand1,
+                                Operand2 = operand2,
                             });
+                        calculationStack.Push(null);
                         break;
                     case Constants.Multiply:
-                        builder.AddActivity("MultiplyActivity", new Uri($"exchange:{formatter.ExecuteActivity<MultiplicationActivity, OperationArguments>()}"),
+                        builder.AddActivity("MultiplyActivity", new Uri($"exchange:{formatter.ExecuteActivity<MultiplicationActivity, OperationOperands>()}"),
                             new
                             {
-                                CalculationOperand = calculationOperand
+                                Operand1 = operand1,
+                                Operand2 = operand2,
                             });
+                        calculationStack.Push(null);
                         break;
                     case Constants.Divide:
-                        builder.AddActivity("DivideActivity", new Uri($"exchange:{formatter.ExecuteActivity<DivisionActivity, OperationArguments>()}"),
+                        builder.AddActivity("DivideActivity", new Uri($"exchange:{formatter.ExecuteActivity<DivisionActivity, OperationOperands>()}"),
                             new
                             {
-                                CalculationOperand = calculationOperand
+                                Operand1 = operand1,
+                                Operand2 = operand2,
                             });
+                        calculationStack.Push(null);
                         break;
                 }
             }
