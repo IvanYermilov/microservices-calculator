@@ -25,7 +25,7 @@ A web application implementing the functionality of a calculator. The applicatio
 - Each mathematical operation should be performed in a separate microservice.
 - A dedicated microservice should handle the incoming request.
 - Use a message broker for communication between services.
-- Use the CQRS pattern for the recording result and obtainig transaction state from the database.
+- Use the CQRS pattern for the recording result and obtaining transaction state from the database.
 - Database: MongoDB.
 - Implement the SAGA pattern in the application.
 - Each service should have its own database.
