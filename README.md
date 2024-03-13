@@ -15,7 +15,7 @@ A web application implementing the functionality of a calculator. The applicatio
 - The application should return the calculation result via HTTP.
 - The application should work with rational numbers (overflow - numbers during expression calculation do not fit into the double range - is an error).
 - The application should provide accuracy up to the 3rd decimal place (at each operation).
-- The application should round all input fractional numbers to the 3rd decimal place.
+- The application should round the result to the 3rd decimal place.
 - The application should validate input data: only mathematical operations that the application can handle and numbers are allowed (the symbol "." (dot) serves as a separator).
 - The application should handle expressions that user input less then 50 characters;
 - Authentication and authorization must be implemented.
@@ -23,12 +23,9 @@ A web application implementing the functionality of a calculator. The applicatio
 ## Architecture Requirements
 - The application should be implemented based on microservices architecture.
 - Each mathematical operation should be performed in a separate microservice.
-- A separate microservice should handle the incoming request.
-- A separate microservice should handle the recording of the expression with the result.
+- A dedicated microservice should handle the incoming request.
 - Use a message broker for communication between services.
-- Use the CQRS pattern for interaction between services and the database.
-  - Command: for recording the result of operations in the database.
-  - Query: for obtaining the result of intermediate operations.
+- Use the CQRS pattern for the recording result and obtainig transaction state from the database.
 - Database: MongoDB.
 - Implement the SAGA pattern in the application.
 - Each service should have its own database.
@@ -36,6 +33,5 @@ A web application implementing the functionality of a calculator. The applicatio
 ## Communication Channel Requirements
 - Message broker: RabbitMQ.
 
-## Scaling and Deployment Requirements
-- Microservices, the database, and the message broker should be deployed in Kubernetes.
-- Horizontal scaling of services should be implemented.
+## Deployment Requirements
+- Application should have docker compose file for deployment purposes.

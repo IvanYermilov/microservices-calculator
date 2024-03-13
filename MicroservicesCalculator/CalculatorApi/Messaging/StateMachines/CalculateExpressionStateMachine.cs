@@ -77,7 +77,7 @@ static class RegistrationStateMachineBehaviorExtensions
     {
         return binder.Then(context =>
         {
-            context.Saga.Result = Convert.ToDecimal(context.GetVariable<List<object>>("ResultsStack")!.FirstOrDefault());
+            context.Saga.Result = Math.Round(Convert.ToDecimal(context.GetVariable<List<object>>("ResultsStack")!.FirstOrDefault()), 3);
         });
     }
 
