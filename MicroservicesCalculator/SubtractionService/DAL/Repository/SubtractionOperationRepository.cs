@@ -14,8 +14,15 @@ class SubtractionOperationRepository : ISubtractionOperationRepository
         _subtractionOperations = database.GetCollection<SubtractionOperationData>(mongoDbSettings.CollectionName);
     }
 
-    public async Task RecordSubtractionResult(SubtractionOperationData subtractionOperationData)
+    public async Task<Guid> RecordSubtractionResult(SubtractionOperationData subtractionOperationData)
     {
         await _subtractionOperations.InsertOneAsync(subtractionOperationData);
+
+        return subtractionOperationData.Id;
+    }
+
+    public async Task RemoveSubtractionResult(Guid documentId)
+    {
+        await _subtractionOperations.DeleteOneAsync(so => so.Id == documentId);
     }
 }

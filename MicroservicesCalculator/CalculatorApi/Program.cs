@@ -1,6 +1,5 @@
 using System.Reflection;
 using CalculatorAPI.Extensions;
-using CalculatorAPI.Messaging.Consumers;
 using CalculatorAPI.Messaging.StateMachines;
 using Common.Configurations;
 using MassTransit;

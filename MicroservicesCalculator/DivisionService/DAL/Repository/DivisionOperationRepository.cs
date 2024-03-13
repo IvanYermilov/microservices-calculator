@@ -14,8 +14,14 @@ class DivisionOperationRepository : IDivisionOperationRepository
         _divisionOperations = database.GetCollection<DivisionOperationData>(mongoDbSettings.CollectionName);
     }
 
-    public async Task RecordDivisionResult(DivisionOperationData divisionOperation)
+    public async Task<Guid> RecordDivisionResult(DivisionOperationData divisionOperation)
     {
         await _divisionOperations.InsertOneAsync(divisionOperation);
+        return divisionOperation.Id;
+    }
+
+    public async Task RemoveDivisionResult(Guid documentId)
+    {
+        await _divisionOperations.DeleteOneAsync(divo => divo.Id == documentId);
     }
 }

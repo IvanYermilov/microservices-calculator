@@ -22,15 +22,6 @@ class AdditionOperationRepository : IAdditionOperationRepository
         await _additionOperations.InsertOneAsync(additionOperation);
 
         return additionOperation.Id;
-
-        //if (Guid.TryParse(additionOperation.Id, out Guid id))
-        //{
-        //    return id;
-        //}
-        //else
-        //{
-        //    return Guid.Empty;
-        //}
     }
 
     public async Task RemoveAdditionResult(Guid documentId)

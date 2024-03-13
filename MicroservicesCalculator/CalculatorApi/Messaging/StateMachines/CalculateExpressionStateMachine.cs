@@ -63,7 +63,6 @@ static class RegistrationStateMachineBehaviorExtensions
     public static EventActivityBinder<CalculateExpressionState, ExpressionReceived> Converting(
         this EventActivityBinder<CalculateExpressionState, ExpressionReceived> binder)
     {
-        Thread.Sleep(5000);
         return binder.PublishAsync(context => context.Init<ConvertExpression>(context.Message));
     }
 
@@ -78,7 +77,7 @@ static class RegistrationStateMachineBehaviorExtensions
     {
         return binder.Then(context =>
         {
-            context.Saga.Result = context.GetVariable<decimal>("Operand1") ?? 0;
+            context.Saga.Result = Math.Round(Convert.ToDecimal(context.GetVariable<List<object>>("ResultsStack")!.FirstOrDefault()), 3);
         });
     }
 

@@ -1,18 +1,25 @@
 using Common.Configurations;
-using DivisionService.BLL.DivisionService;
-using DivisionService.BLL.Features.Division;
+using DivisionService.BLL.Activities;
 using DivisionService.DAL.Repository;
 using MassTransit;
 using Microsoft.Extensions.Options;
-using MongoDB.Driver;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
+using System.Reflection;
+using Common.Extensions;
+
+#pragma warning disable CS0618
+BsonDefaults.GuidRepresentation = GuidRepresentation.Standard;
+BsonDefaults.GuidRepresentationMode = GuidRepresentationMode.V3;
+#pragma warning restore CS0618
+BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
-
-    busConfigurator.AddConsumer<DivisionEventConsumer>();
 
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
@@ -24,6 +31,12 @@ builder.Services.AddMassTransit(busConfigurator =>
 
         configurator.ConfigureEndpoints(context);
     });
+    busConfigurator.AddActivitiesFromNamespaceContaining<DivisionActivity>();
+});
+
+builder.Services.AddMediatR((configuration) =>
+{
+    configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
 });
 
 builder.Services.Configure<MongoDbSettings>(
@@ -32,12 +45,11 @@ builder.Services.Configure<MongoDbSettings>(
 builder.Services.AddSingleton(sp =>
     sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
 
-builder.Services.AddSingleton<IMongoClient>(sp =>
-    new MongoClient(builder.Configuration.GetSection("Database:ConnectionString").Value!));
+var mongoDbSettings = builder.Configuration.GetSection("Database").Get<MongoDbSettings>();
+
+builder.Services.AddMongo(mongoDbSettings);
 
 builder.Services.AddScoped<IDivisionOperationRepository, DivisionOperationRepository>();
-
-builder.Services.AddScoped<IDivisionService, DivisionOperationService>();
 
 var app = builder.Build();
 

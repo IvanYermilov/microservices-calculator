@@ -1,7 +1,10 @@
 ﻿using AdditionService.BLL.Activities.AdditionActivity;
 using Contracts;
+using DivisionService.BLL.Activities;
 using MassTransit;
 using MassTransit.Courier.Contracts;
+using MultiplicationService.BLL.Activities;
+using SubtractionService.BLL.Activities;
 
 namespace CalculatorAPI.Messaging.Consumers;
 
@@ -26,9 +29,9 @@ public sealed class CalculateExpressionConsumer(IEndpointNameFormatter formatter
 
     private async Task CreateRoutingSlip(Stack<string> expressionAsStackPostfix, ConsumeContext<CalculateExpression> context, CancellationToken cancellationToken)
     {
-        bool isFirstOperation = true;
-        Stack<decimal> calculationStack = new Stack<decimal>();
+        Stack<decimal?> calculationStack = new Stack<decimal?>();
         var builder = new RoutingSlipBuilder(NewId.NextGuid());
+        builder.AddVariable("ResultsStack", new Stack<decimal>());
         foreach (var stackValue in expressionAsStackPostfix)
         {
             if (decimal.TryParse(stackValue, out var operand))
@@ -37,41 +40,47 @@ public sealed class CalculateExpressionConsumer(IEndpointNameFormatter formatter
             }
             else
             {
-                
-                if (isFirstOperation)
-                {
-                    var operand1 = calculationStack.Pop();
-                    builder.AddVariable("Operand1", operand1);
-
-                    isFirstOperation = false;
-                }
-
-                var operand2 = calculationStack.Pop();
+                calculationStack.TryPop(out var operand2);
+                calculationStack.TryPop(out var operand1); 
 
                 switch (stackValue)
                 {
                     case Constants.Plus:
-                        //calculationStack.Push(operand2 + operand1);
-                        //await bus.Publish(new PlusEvent()
-                        //{
-                        //    Operand1 = operand1,
-                        //    Operand2 = operand2
-                        //}, cancellationToken);
-                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationArguments>()}"),
+                        builder.AddActivity("PlusActivity", new Uri($"exchange:{formatter.ExecuteActivity<AdditionActivity, OperationOperands>()}"),
                             new
                             {
-                                Operand2 = operand2
+                                Operand1 = operand1,
+                                Operand2 = operand2,
                             });
+                        calculationStack.Push(null);
                         break;
-                    //case Constants.Minus:
-                    //    calculationStack.Push(operand2 - operand1);
-                    //    break;
-                    //case Constants.Multiply:
-                    //    calculationStack.Push(operand2 * operand1);
-                    //    break;
-                    //case Constants.Divide:
-                    //    calculationStack.Push(operand2 / operand1);
-                    //    break;
+                    case Constants.Minus:
+                        builder.AddActivity("MinusActivity", new Uri($"exchange:{formatter.ExecuteActivity<SubtractionActivity, OperationOperands>()}"),
+                            new
+                            {
+                                Operand1 = operand1,
+                                Operand2 = operand2,
+                            });
+                        calculationStack.Push(null);
+                        break;
+                    case Constants.Multiply:
+                        builder.AddActivity("MultiplyActivity", new Uri($"exchange:{formatter.ExecuteActivity<MultiplicationActivity, OperationOperands>()}"),
+                            new
+                            {
+                                Operand1 = operand1,
+                                Operand2 = operand2,
+                            });
+                        calculationStack.Push(null);
+                        break;
+                    case Constants.Divide:
+                        builder.AddActivity("DivideActivity", new Uri($"exchange:{formatter.ExecuteActivity<DivisionActivity, OperationOperands>()}"),
+                            new
+                            {
+                                Operand1 = operand1,
+                                Operand2 = operand2,
+                            });
+                        calculationStack.Push(null);
+                        break;
                 }
             }
         }

@@ -1,18 +1,18 @@
-﻿using AdditionService.BLL.AdditionOperation.Commands;
-using Common.Extensions;
+﻿using Common.Extensions;
 using Contracts;
 using MassTransit;
 using MediatR;
+using MultiplicationService.BLL.MultiplicationOperation.Commands;
 
-namespace AdditionService.BLL.Activities.AdditionActivity;
+namespace MultiplicationService.BLL.Activities;
 
-public class AdditionActivity(ISender sender) : IActivity<OperationOperands, OperationCalculationLog>
+public class MultiplicationActivity(ISender sender) : IActivity<OperationOperands, OperationCalculationLog>
 {
     public async Task<ExecutionResult> Execute(ExecuteContext<OperationOperands> context)
     {
         var resultsStack = new Stack<decimal>(((List<object>)context.Message.Variables["ResultsStack"]).Select(Convert.ToDecimal).ToList());
         var operands = context.GetOperands(resultsStack);
-        var command = new CalculateAdditionOperationCommand(operands.Operand1!.Value, operands.Operand2!.Value);
+        var command = new CalculateMultiplicationOperationCommand(operands.Operand1!.Value, operands.Operand2!.Value);
         var result = await sender.Send(command);
         if (result.IsSuccess)
         {
@@ -30,7 +30,7 @@ public class AdditionActivity(ISender sender) : IActivity<OperationOperands, Ope
 
     public async Task<CompensationResult> Compensate(CompensateContext<OperationCalculationLog> context)
     {
-        var command = new RemoveAdditionOperationResultCommand(context.Log.OperationId);
+        var command = new RemoveMultiplicationOperationResultCommand(context.ExecutionId);
         var result = await sender.Send(command);
         if (result.IsFailure)
         {

@@ -4,5 +4,6 @@ namespace DivisionService.DAL.Repository;
 
 public interface IDivisionOperationRepository
 {
-    public Task RecordDivisionResult(DivisionOperationData divisionOperation);
+    public Task<Guid> RecordDivisionResult(DivisionOperationData divisionOperation);
+    public Task RemoveDivisionResult(Guid documentId);
 }
